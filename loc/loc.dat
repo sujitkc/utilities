@@ -1,0 +1,367 @@
+#!/bin/bash
+
+FALSE=0;
+TRUE=1;
+
+srcFileExtensions=( java cpp cc h hh hpp c py pl sh ); # File name extensions which will be considered as source files. Remove/add as needed.
+ 
+function loc_dir(){
+	local prefix=$1;
+	
+	if [ ! -d ${prefix} ]; then
+		echo "${prefix} is not a directory. Quitting...";
+		exit 1;
+	fi
+
+	local names=( `ls ${prefix}` );
+
+	for name in ${names[@]}; do
+		if [ -d "${prefix}/${name}" ]; then
+			if [ -f "${prefix}/loc.dat" ]; then
+				rm "${prefix}/loc.dat";
+			fi
+			loc_dir "${prefix}/${name}"
+		fi
+	done;
+
+	for name in ${names[@]}; do
+		local fullName=${prefix}/${name};
+		if [ -d "${fullName}" ]; then
+			cat "${fullName}/loc.dat" >> "${prefix}/loc.dat";
+			rm "${fullName}/loc.dat";
+		elif [ -f "${fullName}" ]; then
+			isSrcFile ${fullName};
+			result=$?;
+			if [ ${result} ]; then
+				cat "${fullName}" >> "${prefix}/loc.dat";
+			fi
+		else
+			echo "Something wrong with ${fullName}";
+			exit 1;
+		fi
+	done;
+}
+
+function remove_empty_lines(){
+	local prefix=$1;
+
+	echo "Removing empty lines...";
+
+	local loc="${prefix}/loc.dat";
+	local loc1="${prefix}/loc1.dat";
+	mv ${loc} ${loc1};
+	
+	while read line
+	do
+		if [ "${line}" != "" ]; then
+			echo ${line} >> ${loc};
+		fi
+	done <${loc1}
+	rm ${loc1};
+}
+
+function isSrcFile(){
+	local fileName=$1;
+
+	for ext in ${srcFileExtensions[@]}; do
+		local extLength=`expr length ".${ext}"`;
+		local nameLength=`expr length "${fileName}"`;
+		local startPosition=`expr ${nameLength} - ${extLength}`;
+		local len=`expr ${nameLength} - 1`;
+		local subString=`echo ${fileName:${startPosition}:${len}}`;
+		if [ "${subString}" == ".${ext}" ]; then
+			return ${TRUE};
+		fi
+	done;
+	return ${FALSE};
+}
+
+dirname="";
+if [ $# == 0 ]; then
+	dirname="\.";
+else
+	dirname=$1;
+fi
+loc_dir ${dirname};
+# remove_empty_lines ${dirname};
+wc -l "${dirname}/loc.dat";
+result=( `wc -l "${dirname}/loc.dat"` );
+loc=${result[0]};
+echo "${loc} lines of code."
+#rm "${dirname}/loc.dat";#!/bin/bash<BR>
+<BR>
+function loc_dir(){<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;local prefix=$1;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;if [ ! -d ${prefix} ]; then<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo "${prefix} is not a directory. Quitting...";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit 1;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;fi<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;local names=( `ls ${prefix}` );<BR>
+#&nbsp;&nbsp;&nbsp;&nbsp;echo "${#names[@]} names in this directory."<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;for name in ${names[@]}; do<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if [ -d "${prefix}/${name}" ]; then<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if [ -f "${prefix}/loc.dat" ]; then<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rm "${prefix}/loc.dat";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fi<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loc_dir "${prefix}/${name}"<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fi<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;done;<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;for name in ${names[@]}; do<BR>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo "processing ${prefix}/${name} ...";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if [ -d "${prefix}/${name}" ]; then<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cat "${prefix}/${name}/loc.dat" >> "${prefix}/loc.dat";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rm "${prefix}/${name}/loc.dat";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif [ -f "${prefix}/${name}" ]; then<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cat "${prefix}/${name}" >> "${prefix}/loc.dat";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo "Something wrong with $name";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit 1;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fi<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;done;<BR>
+#&nbsp;&nbsp;&nbsp;&nbsp;echo "exiting ${prefix} ..."<BR>
+}<BR>
+<BR>
+function remove_empty_lines(){<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;local prefix=$1;<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;echo "Removing empty lines...";<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;local loc="${prefix}/loc.dat";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;local loc1="${prefix}/loc1.dat";<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;mv ${loc} ${loc1};<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;while read line<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;do<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if [ "${line}" != "" ]; then<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo ${line} >> ${loc};<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fi<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;done <${loc1}<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;rm ${loc1};<BR>
+}<BR>
+<BR>
+dirname="";<BR>
+if [ $# == 0 ]; then<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;dirname="\.";<BR>
+else<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;dirname=$1;<BR>
+fi<BR>
+loc_dir ${dirname};<BR>
+# remove_empty_lines ${dirname};<BR>
+wc -l "${dirname}/loc.dat";<BR>
+result=( `wc -l "${dirname}/loc.dat"` );<BR>
+loc=${result[0]};<BR>
+echo "${loc} lines of code."<BR>
+#rm "${dirname}/loc.dat";<BR>#!/bin/bash
+
+FALSE=0;
+TRUE=1;
+
+srcFileExtensions=( java cpp cc h hh hpp c py pl );
+ 
+function loc_dir(){
+	local prefix=$1;
+	
+	if [ ! -d ${prefix} ]; then
+		echo "${prefix} is not a directory. Quitting...";
+		exit 1;
+	fi
+
+	local names=( `ls ${prefix}` );
+#	echo "${#names[@]} names in this directory."
+	for name in ${names[@]}; do
+		if [ -d "${prefix}/${name}" ]; then
+			if [ -f "${prefix}/loc.dat" ]; then
+				rm "${prefix}/loc.dat";
+			fi
+			loc_dir "${prefix}/${name}"
+		fi
+	done;
+
+	for name in ${names[@]}; do
+		local fullName=${prefix}/${name};
+		if [ -d "${fullName}" ]; then
+			cat "${fullName}/loc.dat" >> "${prefix}/loc.dat";
+			rm "${fullName}/loc.dat";
+		elif [ -f "${fullName}" ]; then
+			if [ isSourceFile ${fullName} ]; then
+				cat "${fullName}" >> "${prefix}/loc.dat";
+			fi
+		else
+			echo "Something wrong with ${fullName}";
+			exit 1;
+		fi
+	done;
+#	echo "exiting ${prefix} ..."
+}
+
+function remove_empty_lines(){
+	local prefix=$1;
+
+	echo "Removing empty lines...";
+
+	local loc="${prefix}/loc.dat";
+	local loc1="${prefix}/loc1.dat";
+	mv ${loc} ${loc1};
+	
+	while read line
+	do
+		if [ "${line}" != "" ]; then
+			echo ${line} >> ${loc};
+		fi
+	done <${loc1}
+	rm ${loc1};
+}
+
+function isSourceFile(){
+	local fileName=$1;
+
+	for ext in ${srcFileExtensions[@]}; do
+		if [ ]; then
+			return TRUE;
+		fi
+	done;
+	return FALSE;
+}
+
+dirname="";
+if [ $# == 0 ]; then
+	dirname="\.";
+else
+	dirname=$1;
+fi
+loc_dir ${dirname};
+# remove_empty_lines ${dirname};
+wc -l "${dirname}/loc.dat";
+result=( `wc -l "${dirname}/loc.dat"` );
+loc=${result[0]};
+echo "${loc} lines of code."
+#rm "${dirname}/loc.dat";#!/bin/bash
+
+FALSE=0;
+TRUE=1;
+
+srcFileExtensions=( java cpp cc h hh hpp c py pl sh ); # File name extensions which will be considered as source files. Remove/add as needed.
+ 
+function isSrcFile(){
+	local fileName=$1;
+
+	for ext in ${srcFileExtensions[@]}; do
+		local extLength=`expr length ".${ext}"`;
+		local nameLength=`expr length "${fileName}"`;
+		local startPosition=`expr ${nameLength} - ${extLength}`;
+		local len=`expr ${nameLength} - 1`;
+		local subString=`echo ${fileName:${startPosition}:${len}}`;
+		if [ "${subString}" == ".${ext}" ]; then
+			return ${TRUE};
+		fi
+	done;
+	return ${FALSE};
+}
+
+fileName=$1;
+isSrcFile ${fileName};
+result=$?;
+echo "result = ${result}";
+if [ "$result" == "1" ]; then
+	echo "${fileName} is a source file";
+else
+	echo "${fileName} is not a source file";
+fi#!/bin/bash
+
+FALSE=0;
+TRUE=1;
+
+srcFileExtensions=( java cpp cc h hh hpp c py pl sh ); # File name extensions which will be considered as source files. Remove/add as needed.
+ 
+function loc_dir(){
+	local prefix=$1;
+	
+	if [ ! -d ${prefix} ]; then
+		echo "${prefix} is not a directory. Quitting...";
+		exit 1;
+	fi
+
+	local names=( `ls ${prefix}` );
+#	echo "${#names[@]} names in this directory."
+	for name in ${names[@]}; do
+		if [ -d "${prefix}/${name}" ]; then
+			if [ -f "${prefix}/loc.dat" ]; then
+				rm "${prefix}/loc.dat";
+			fi
+			loc_dir "${prefix}/${name}"
+		fi
+	done;
+
+	for name in ${names[@]}; do
+		local fullName=${prefix}/${name};
+		if [ -d "${fullName}" ]; then
+			cat "${fullName}/loc.dat" >> "${prefix}/loc.dat";
+			rm "${fullName}/loc.dat";
+		elif [ -f "${fullName}" ]; then
+			if [ isSourceFile ${fullName} ]; then
+				cat "${fullName}" >> "${prefix}/loc.dat";
+			fi
+		else
+			echo "Something wrong with ${fullName}";
+			exit 1;
+		fi
+	done;
+#	echo "exiting ${prefix} ..."
+}
+
+function remove_empty_lines(){
+	local prefix=$1;
+
+	echo "Removing empty lines...";
+
+	local loc="${prefix}/loc.dat";
+	local loc1="${prefix}/loc1.dat";
+	mv ${loc} ${loc1};
+	
+	while read line
+	do
+		if [ "${line}" != "" ]; then
+			echo ${line} >> ${loc};
+		fi
+	done <${loc1}
+	rm ${loc1};
+}
+
+function isSourceFile(){
+	local fileName=$1;
+
+	for ext in ${srcFileExtensions[@]}; do
+		local extLength=`expr length ".ext"`;
+		local nameLength=`expr length "fileName"`'
+		local startPosition=`expr $nameLength - extLength - 1`;
+		local len=`expr nameLength - 1`;
+		local subString=`echo ${fileName:${startPosition}:${len}}
+		if [ "$(subString}" == ".ext" ]; then
+			return TRUE;
+		fi
+	done;
+	return FALSE;
+}
+
+dirname="";
+if [ $# == 0 ]; then
+	dirname="\.";
+else
+	dirname=$1;
+fi
+loc_dir ${dirname};
+# remove_empty_lines ${dirname};
+wc -l "${dirname}/loc.dat";
+result=( `wc -l "${dirname}/loc.dat"` );
+loc=${result[0]};
+echo "${loc} lines of code."
+#rm "${dirname}/loc.dat";Exception: STATUS_ACCESS_VIOLATION at eip=6102048B
+eax=009B00F8 ebx=61243754 ecx=7531789F edx=003D4118 esi=00000000 edi=0022FA14
+ebp=61020C00 esp=0022C7E4 program=C:\cygwin\bin\xterm.exe, pid 864, thread main
+cs=001B ds=0023 es=0023 fs=003B gs=0000 ss=0023
+Stack trace:
+Frame     Function  Args
+End of stack trace
